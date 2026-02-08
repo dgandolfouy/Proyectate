@@ -3,7 +3,6 @@ import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 const getClient = () => {
   let apiKey = '';
   try {
-    // Safety check for environment where process might not be defined
     if (typeof process !== 'undefined' && process.env) {
       apiKey = process.env.API_KEY || '';
     }
@@ -23,39 +22,22 @@ export const getStrategicAdvice = async (
   question: string
 ): Promise<string> => {
   const client = getClient();
-  if (!client) return "Error: API Key no configurada o no accesible.";
+  if (!client) return "Error: API Key no configurada.";
 
   try {
     const prompt = `
-      Prompt Maestro: Consultor Multidisciplinario de Proyectos (Daniel G.)
-      Instrucción de Sistema:
-      Eres el Consultor Estratégico personal de Daniel Gandolfo. Tu objetivo es ayudarlo a ejecutar sus proyectos con rigor técnico, visión de diseño y optimización de costos. Daniel es Diseñador Gráfico, Gestor de Calidad (ISO 9001) y Asistente de Producción, por lo que tus respuestas deben ser técnicas, estructuradas y visuales.
+      Prompt Maestro: Consultor Multidisciplinario (Daniel G.)
+      
+      CONTEXTO DEL PROYECTO:
+      ${context}
 
-      REGLA DE ORO DE CONTEXTO:
-      Actúa según el proyecto que Daniel mencione. Si no especifica, asume el contexto actual: ${context}.
-
-      MÓDULO 1: PROYECTO TAOASIS / BALDINI (Aromaterapia Premium)
-      Perfil: Experto en normativa MSP (Uruguay), comercio exterior, y certificaciones orgánicas (Demeter/Bio).
-      Prioridades:
-      - Fomentar el uso del Certificado PYME para el 80% de descuento.
-      - Asegurar que el diseño de etiquetas cumpla con el MSP sin arruinar la estética alemana.
-      - Calcular el Landed Cost (Costo de llegada) sumando flete, aranceles (UE-Mercosur) y gastos de despacho.
-
-      MÓDULO 2: PROYECTO GUTEN (Imprenta Digital)
-      Perfil: Consultor en Artes Gráficas, flujo de trabajo digital y optimización de producción.
-      Enfoque: Ayudar en la gestión de insumos, costos de impresión por clic vs. tóner, y diseño de productos (agendas, papelería personalizada).
-
-      MODOS DE OPERACIÓN:
-      1. MODO: INVERSOR ESCÉPTICO (Stress Test)
-      2. MODO: ANALISTA TÉCNICO & MSP (Fichas y Normas)
-      3. MODO: CALCULADORA DE ARRANQUE PYME (Optimización de Pesos)
-
-      ESTILO DE RESPUESTA:
-      Directo, profesional y con un toque de ingenio (como un par estratégico).
-      Usa tablas para comparar datos y listas de verificación (Checklists) para tareas pendientes.
-      Termina cada respuesta con una "Acción Sugerida" para que el proyecto nunca se detenga.
-
-      Pregunta del Usuario:
+      ROL:
+      Eres un Project Manager Senior experto en economía, diseño y procesos (ISO 9001).
+      
+      TAREA:
+      Responde a la siguiente consulta del usuario de forma breve, estratégica y orientada a la acción.
+      
+      CONSULTA:
       ${question}
     `;
 
@@ -68,5 +50,39 @@ export const getStrategicAdvice = async (
   } catch (error) {
     console.error("Error fetching advice:", error);
     return "Ocurrió un error al consultar al asesor virtual.";
+  }
+};
+
+export const generateTaskSuggestions = async (
+  taskTitle: string,
+  taskDescription: string,
+  taskContext: string,
+  projectTitle: string
+): Promise<string> => {
+  const client = getClient();
+  if (!client) return "Configura tu API Key para recibir sugerencias.";
+
+  try {
+    const prompt = `
+      ESTÁS DENTRO DE UNA TAREA ESPECÍFICA.
+      Proyecto: ${projectTitle}
+      Tarea: ${taskTitle}
+      Descripción: ${taskDescription || "Sin descripción"}
+      Contexto Adicional (Oculto): ${taskContext || "N/A"}
+
+      OBJETIVO:
+      Genera una lista de 3 a 5 "Siguientes Pasos" concretos y accionables para desbloquear o avanzar esta tarea.
+      Si hay contexto técnico (ej: medidas, costos), úsalo para ser preciso.
+      Formato: Markdown simple (lista con bullets). Sé breve.
+    `;
+
+    const response: GenerateContentResponse = await client.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: prompt,
+    });
+
+    return response.text || "Sin sugerencias por el momento.";
+  } catch (error) {
+    return "Error al generar sugerencias.";
   }
 };
