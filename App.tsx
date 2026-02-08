@@ -139,10 +139,10 @@ const IntroScreen: React.FC<{ onSelectUser: (u: User) => void }> = ({ onSelectUs
   return (
     <div className="fixed inset-0 z-50 bg-[#050505] flex flex-col items-center justify-center p-4">
       <div className="text-center mb-16">
-         <h1 className="text-6xl md:text-8xl font-display font-medium text-white tracking-widest animate-cinematic bg-clip-text text-transparent bg-gradient-to-br from-white via-gray-200 to-gray-500">
+         <h1 className="text-5xl md:text-7xl font-display font-medium text-white tracking-widest animate-cinematic bg-clip-text text-transparent bg-gradient-to-br from-white via-gray-200 to-gray-500">
            Proyectate
          </h1>
-         <p className="text-gray-400 mt-4 font-sans font-light tracking-[0.2em] uppercase text-sm animate-fade-in" style={{ animationDelay: '1s' }}>
+         <p className="text-gray-400 mt-2 font-sans font-light tracking-[0.2em] uppercase text-xs md:text-sm animate-fade-in" style={{ animationDelay: '1s' }}>
            Relajo con Orden
          </p>
       </div>
@@ -184,7 +184,7 @@ const InputModal: React.FC<{ title: string; onClose: () => void; onSubmit: (val:
     return (
         <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in" onClick={onClose}>
             <div className="bg-[#0c0c0e] border border-white/10 rounded-2xl w-full max-w-md p-6 shadow-2xl animate-slide-up" onClick={e => e.stopPropagation()}>
-                <h3 className="text-xl font-display font-bold text-white mb-4">{title}</h3>
+                <h3 className="text-xl font-display font-normal text-white mb-4 tracking-wide">{title}</h3>
                 <form onSubmit={handleSubmit}>
                     <input 
                         ref={inputRef}
@@ -229,7 +229,7 @@ const AIModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in" onClick={onClose}>
             <div className="bg-[#111115] border border-indigo-500/30 rounded-2xl w-full max-w-2xl p-6 shadow-2xl shadow-indigo-900/20 animate-slide-up flex flex-col max-h-[80vh]" onClick={e => e.stopPropagation()}>
                 <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3">
+                    <h3 className="text-2xl font-display font-normal text-white flex items-center gap-3 tracking-wide">
                         <Icons.Bot className="text-indigo-400" />
                         Consultor Estratégico
                     </h3>
@@ -299,7 +299,7 @@ const StatsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in" onClick={onClose}>
             <div className="bg-[#111115] border border-emerald-500/30 rounded-2xl w-full max-w-lg p-8 shadow-2xl shadow-emerald-900/20 animate-slide-up" onClick={e => e.stopPropagation()}>
                 <div className="flex justify-between items-center mb-8">
-                    <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3">
+                    <h3 className="text-2xl font-display font-normal text-white flex items-center gap-3 tracking-wide">
                         <Icons.Chart className="text-emerald-400" />
                         Estadísticas Globales
                     </h3>
@@ -568,7 +568,7 @@ const TaskDetailModal: React.FC<{ task: Task; onClose: () => void }> = ({ task, 
                         type="text" 
                         value={task.title} 
                         onChange={handleTitleChange}
-                        className="text-3xl font-display font-bold text-white leading-tight bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 rounded-lg w-full placeholder-gray-600"
+                        className="text-3xl font-display font-normal tracking-wide text-white leading-tight bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 rounded-lg w-full placeholder-gray-600"
                     />
                     
                     <div className="flex items-center gap-2 mt-2">
@@ -752,7 +752,7 @@ const ProjectsList: React.FC = () => {
             </div>
 
             <div className="mb-12 text-center">
-                <h1 className="text-6xl md:text-8xl font-display font-medium text-white mb-4 tracking-widest drop-shadow-2xl">Proyectate</h1>
+                <h1 className="text-4xl md:text-6xl font-display font-normal text-white mb-4 tracking-wide drop-shadow-2xl">Proyectate</h1>
                 <p className="text-xl text-gray-400 font-sans font-light tracking-[0.2em] uppercase">Relajo con Orden</p>
             </div>
 
@@ -787,7 +787,7 @@ const ProjectsList: React.FC = () => {
                             {/* Main Content: Vertically Centered */}
                             <div className="flex-1 flex items-center justify-between">
                                 <div className="flex flex-col justify-center">
-                                    <h3 className="text-3xl font-display font-bold text-white mb-1 drop-shadow-md leading-tight">{project.title}</h3>
+                                    <h3 className="text-3xl font-display font-normal tracking-wide text-white mb-1 drop-shadow-md leading-tight">{project.title}</h3>
                                     <p className="text-sm text-gray-200/70 uppercase tracking-wider font-medium">{project.subtitle}</p>
                                 </div>
                                 <div className="flex items-center justify-center pl-4">
@@ -858,7 +858,7 @@ const ProjectView: React.FC = () => {
                         type="text" 
                         value={project.title} 
                         onChange={handleTitleChange}
-                        className="text-4xl font-display font-bold text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 rounded-lg w-full"
+                        className="text-4xl font-display font-normal tracking-wide text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 rounded-lg w-full"
                     />
                     <input 
                         type="text" 
@@ -894,7 +894,7 @@ const ProjectView: React.FC = () => {
                     placeholder="Buscar en el proyecto..."
                     className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-indigo-500/50 shadow-inner"
                 />
-                <Icons.Chart className="absolute left-4 top-4.5 text-gray-500 w-5 h-5" />
+                <Icons.Search className="absolute left-4 top-4.5 text-gray-500 w-5 h-5" />
             </div>
 
             <div className="flex justify-between items-center mb-6">
