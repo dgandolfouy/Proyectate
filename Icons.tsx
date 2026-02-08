@@ -1,0 +1,46 @@
+import React from 'react';
+import { 
+  CheckCircle2, 
+  Circle, 
+  ChevronRight, 
+  ChevronDown, 
+  Plus, 
+  Trash2, 
+  Settings, 
+  Camera, 
+  FileText, 
+  Mic, 
+  Video, 
+  Link as LinkIcon,
+  Bot,
+  BarChart3,
+  Book,
+  X,
+  Upload,
+  Lock,
+  User,
+  ArrowRight
+} from 'lucide-react';
+
+export const Icons = {
+  Check: CheckCircle2,
+  Circle: Circle,
+  Expand: ChevronRight,
+  Collapse: ChevronDown,
+  Add: Plus,
+  Delete: Trash2,
+  Settings: Settings,
+  Camera: Camera,
+  File: FileText,
+  Audio: Mic,
+  Video: Video,
+  Link: LinkIcon,
+  Bot: Bot,
+  Chart: BarChart3,
+  Book: Book,
+  Close: X,
+  Upload: Upload,
+  Lock: Lock,
+  User: User,
+  ArrowRight: ArrowRight
+};
