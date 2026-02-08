@@ -2,7 +2,7 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Proyectate</title>
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#050505" />
@@ -13,6 +13,18 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Changa+One&family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <script>
+      // Mobile Error Handler: Displays startup errors on the screen
+      window.addEventListener('error', function(e) {
+        var errorBox = document.getElementById('error-box');
+        if (!errorBox) {
+            errorBox = document.createElement('div');
+            errorBox.id = 'error-box';
+            errorBox.style.cssText = 'position:fixed;top:0;left:0;width:100%;background:rgba(200,0,0,0.9);color:white;padding:20px;z-index:9999;font-family:sans-serif;font-size:14px;word-break:break-all;';
+            document.body.appendChild(errorBox);
+        }
+        errorBox.innerHTML += '<p><strong>Error:</strong> ' + e.message + '</p>';
+      });
+      
       tailwind.config = {
         theme: {
           extend: {
@@ -103,6 +115,15 @@
 </script>
 </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+        <!-- Initial Loading State: Allows us to know if React mounted or not -->
+        <div style="height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #444; font-family: sans-serif;">
+            <div style="width: 40px; height: 40px; border: 3px solid #333; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+            <p style="margin-top: 20px; font-size: 12px; letter-spacing: 2px;">CARGANDO SISTEMA...</p>
+        </div>
+        <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
+    </div>
+    <!-- CRITICAL: This was missing. Loads the application logic. -->
+    <script type="module" src="./index.tsx"></script>
   </body>
 </html>

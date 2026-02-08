@@ -10,12 +10,14 @@
     {
       "src": "https://api.iconify.design/lucide:rocket.png?color=%236366f1&height=192",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "https://api.iconify.design/lucide:rocket.png?color=%236366f1&height=512",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
