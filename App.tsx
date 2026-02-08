@@ -6,12 +6,34 @@ import { getStrategicAdvice, generateTaskSuggestions } from './services/geminiSe
 // --- HELPERS ---
 const generateId = () => Math.random().toString(36).substring(2, 10);
 
+// Improved fileToBase64 with compression to fit localStorage
 const fileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = error => reject(error);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 800; // Limit width to save space
+        const scaleSize = MAX_WIDTH / img.width;
+        
+        // Calculate new dimensions
+        const width = (img.width > MAX_WIDTH) ? MAX_WIDTH : img.width;
+        const height = (img.width > MAX_WIDTH) ? img.height * scaleSize : img.height;
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        // Return compressed JPEG
+        resolve(canvas.toDataURL('image/jpeg', 0.7)); 
+      };
+      img.onerror = (error) => reject(error);
+    };
+    reader.onerror = (error) => reject(error);
   });
 };
 
@@ -87,6 +109,7 @@ const PROJECT_THEMES = [
 interface AppContextType {
   state: AppState;
   currentUser: User;
+  users: User[]; // Add users list to context
   activeProjectId: string | null;
   draggedTaskId: string | null;
   setDraggedTaskId: (id: string | null) => void;
@@ -94,7 +117,7 @@ interface AppContextType {
   addProject: (title: string, subtitle: string) => void;
   updateProject: (id: string, updates: Partial<Project>) => void; 
   deleteProject: (id: string) => void;
-  updateCurrentUser: (updates: Partial<User>) => void; // New
+  updateCurrentUser: (updates: Partial<User>) => void; 
   logout: () => void;
   toggleTaskStatus: (taskId: string) => void;
   addTask: (parentId: string | null, title: string) => void;
@@ -110,7 +133,7 @@ interface AppContextType {
   requestInput: (title: string, callback: (val: string) => void) => void;
   openAIModal: () => void;
   openStatsModal: () => void;
-  openProfileModal: () => void; // New
+  openProfileModal: () => void;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -131,7 +154,7 @@ const Avatar: React.FC<{ user?: User, size?: string }> = ({ user, size = "w-8 h-
   );
 };
 
-const IntroScreen: React.FC<{ onSelectUser: (u: User) => void }> = ({ onSelectUser }) => {
+const IntroScreen: React.FC<{ onSelectUser: (u: User) => void; users: User[] }> = ({ onSelectUser, users }) => {
   return (
     <div className="fixed inset-0 z-50 bg-[#050505] flex flex-col items-center justify-center p-4">
       <div className="text-center mb-16">
@@ -144,7 +167,7 @@ const IntroScreen: React.FC<{ onSelectUser: (u: User) => void }> = ({ onSelectUs
       </div>
 
       <div className="flex gap-6 animate-slide-up" style={{ animationDelay: '1.2s' }}>
-        {USERS.map(user => (
+        {users.map(user => (
           <button
             key={user.id}
             onClick={() => onSelectUser(user)}
@@ -201,13 +224,20 @@ const InputModal: React.FC<{ title: string; onClose: () => void; onSubmit: (val:
 const ProfileModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const ctx = useContext(AppContext);
     const [name, setName] = useState(ctx?.currentUser.name || '');
+    const [uploading, setUploading] = useState(false);
     
     if (!ctx) return null;
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
-            const base64 = await fileToBase64(e.target.files[0]);
-            ctx.updateCurrentUser({ avatarUrl: base64 });
+            setUploading(true);
+            try {
+                const base64 = await fileToBase64(e.target.files[0]);
+                ctx.updateCurrentUser({ avatarUrl: base64 });
+            } catch (e) {
+                alert("Error al procesar la imagen. Intenta con una más pequeña.");
+            }
+            setUploading(false);
         }
     };
 
@@ -224,7 +254,7 @@ const ProfileModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 <div className="relative group cursor-pointer mb-6">
                     <Avatar user={ctx.currentUser} size="w-24 h-24" />
                     <label className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Icons.Camera className="text-white" size={24} />
+                        {uploading ? <div className="animate-spin w-6 h-6 border-2 border-white/30 border-t-white rounded-full"></div> : <Icons.Camera className="text-white" size={24} />}
                         <input type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
                     </label>
                 </div>
@@ -407,7 +437,7 @@ const TaskCard: React.FC<{ task: Task; depth: number; themeIndex: number }> = ({
   const hasAttachments = task.attachments.length > 0;
   const hasComments = task.activity.length > 1;
   const isOwner = task.createdBy === ctx.currentUser.id;
-  const owner = USERS.find(u => u.id === task.createdBy);
+  const owner = ctx.users.find(u => u.id === task.createdBy); // Use dynamic users
   const theme = TASK_THEMES[themeIndex % TASK_THEMES.length];
   
   const cardStyle = depth === 0 
@@ -573,8 +603,12 @@ const TaskDetailModal: React.FC<{ task: Task; onClose: () => void }> = ({ task, 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
-            const base64 = await fileToBase64(file);
-            ctx.addAttachment(task.id, 'document', file.name, base64);
+            try {
+                const base64 = await fileToBase64(file);
+                ctx.addAttachment(task.id, 'document', file.name, base64);
+            } catch (err) {
+                alert("Error al subir archivo. Intenta con uno más pequeño.");
+            }
         }
     };
 
@@ -723,7 +757,7 @@ const TaskDetailModal: React.FC<{ task: Task; onClose: () => void }> = ({ task, 
                                 <h3 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-4 flex items-center gap-2"><Icons.Book size={14} /> Actividad</h3>
                                 <div className="bg-black/20 rounded-xl border border-white/5 p-4 max-h-[300px] overflow-y-auto custom-scrollbar mb-4" ref={commentsRef}>
                                     {task.activity.map(log => {
-                                        const user = USERS.find(u => u.id === log.createdBy);
+                                        const user = ctx.users.find(u => u.id === log.createdBy);
                                         return (
                                             <div key={log.id} className="flex gap-3 mb-4 last:mb-0">
                                                 <Avatar user={user} size="w-8 h-8" />
@@ -877,8 +911,12 @@ const ProjectView: React.FC = () => {
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
-            const base64 = await fileToBase64(e.target.files[0]);
-            ctx.updateProject(project.id, { imageUrl: base64 });
+            try {
+                const base64 = await fileToBase64(e.target.files[0]);
+                ctx.updateProject(project.id, { imageUrl: base64 });
+            } catch(e) {
+                alert("Error al subir imagen. Prueba con una más pequeña.");
+            }
         }
     };
 
@@ -941,13 +979,22 @@ const ProjectView: React.FC = () => {
 
 // ... Main App Component Updates ...
 const App: React.FC = () => {
-  // ... State Initialization (Same as before) ...
+  // --- STATE WITH PERSISTENCE ---
   const [state, setState] = useState<AppState>(() => {
     try {
         const saved = localStorage.getItem('proyectate_app_state');
         if (saved) return JSON.parse(saved);
     } catch (e) { console.warn(e); }
     return INITIAL_APP_STATE;
+  });
+
+  // NEW: Persistent Users State
+  const [users, setUsers] = useState<User[]>(() => {
+    try {
+      const saved = localStorage.getItem('proyectate_users');
+      if (saved) return JSON.parse(saved);
+    } catch (e) { console.warn(e); }
+    return USERS;
   });
   
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -958,18 +1005,18 @@ const App: React.FC = () => {
   const [modalConfig, setModalConfig] = useState<{title: string, callback: (val: string) => void} | null>(null);
   const [showAI, setShowAI] = useState(false);
   const [showStats, setShowStats] = useState(false);
-  const [showProfile, setShowProfile] = useState(false); // New
+  const [showProfile, setShowProfile] = useState(false);
 
+  // Persistence Effects
   useEffect(() => { localStorage.setItem('proyectate_app_state', JSON.stringify(state)); }, [state]);
-
+  
   const requestInput = useCallback((title: string, callback: (val: string) => void) => { setModalConfig({ title, callback }); }, []);
 
-  // ... (addProject, deleteProject, etc. remain the same) ...
   const addProject = useCallback((title: string, subtitle: string) => {
       if(!currentUser) return;
       const newProject: Project = {
           id: generateId(), title, subtitle, createdAt: Date.now(), createdBy: currentUser.id, tasks: [],
-          imageUrl: undefined // Allow default fallback
+          imageUrl: undefined
       };
       setState(prev => ({ ...prev, projects: [...prev.projects, newProject] }));
   }, [currentUser]);
@@ -978,11 +1025,18 @@ const App: React.FC = () => {
   const modifyActiveProject = useCallback((updater: (p: Project) => Project) => { if(!activeProjectId) return; setState(prev => ({ projects: prev.projects.map(p => p.id === activeProjectId ? updater(p) : p) })); }, [activeProjectId]);
   const updateProject = useCallback((id: string, updates: Partial<Project>) => { setState(prev => ({ projects: prev.projects.map(p => p.id === id ? { ...p, ...updates } : p) })); }, []);
   
-  // Update Current User
+  // Update Current User AND Persist to localStorage
   const updateCurrentUser = useCallback((updates: Partial<User>) => {
       if(!currentUser) return;
-      setCurrentUser(prev => prev ? { ...prev, ...updates } : null);
-      // NOTE: In a real app we would update the USERS array or backend
+      
+      const updatedUser = { ...currentUser, ...updates };
+      setCurrentUser(updatedUser);
+      
+      setUsers(prevUsers => {
+          const newUsers = prevUsers.map(u => u.id === currentUser.id ? updatedUser : u);
+          localStorage.setItem('proyectate_users', JSON.stringify(newUsers)); // Explicit save
+          return newUsers;
+      });
   }, [currentUser]);
 
   const addTask = useCallback((parentId: string | null, title: string) => {
@@ -999,7 +1053,6 @@ const App: React.FC = () => {
 
   const updateTask = useCallback((taskId: string, updates: Partial<Task>) => { modifyActiveProject(p => ({ ...p, tasks: findTaskAndUpdate(p.tasks, taskId, t => ({ ...t, ...updates })) })); }, [modifyActiveProject]);
   
-  // MOVE TASK LOGIC (PRESERVED AS REQUESTED)
   const moveTask = useCallback((draggedId: string, targetId: string, position: 'before' | 'after' | 'inside') => {
       modifyActiveProject(p => {
           const newTasks = JSON.parse(JSON.stringify(p.tasks)) as Task[];
@@ -1040,7 +1093,6 @@ const App: React.FC = () => {
   const deleteTask = useCallback((taskId: string) => { modifyActiveProject(p => ({ ...p, tasks: findTaskAndDelete(p.tasks, taskId) })); }, [modifyActiveProject]);
   const addActivity = useCallback((taskId: string, content: string, type: ActivityLog['type']) => { if(!currentUser) return; modifyActiveProject(p => ({ ...p, tasks: findTaskAndUpdate(p.tasks, taskId, t => ({ ...t, activity: [...t.activity, { id: generateId(), type, content, timestamp: Date.now(), createdBy: currentUser.id }] })) })); }, [modifyActiveProject, currentUser]);
   
-  // Updated addAttachment to handle types
   const addAttachment = useCallback((taskId: string, type: Attachment['type'], name: string, url: string) => {
       if(!currentUser) return;
       const att: Attachment = { id: generateId(), name, type, url, createdAt: Date.now(), createdBy: currentUser.id };
@@ -1049,7 +1101,6 @@ const App: React.FC = () => {
 
   const toggleExpand = useCallback((taskId: string) => { modifyActiveProject(p => ({ ...p, tasks: findTaskAndUpdate(p.tasks, taskId, t => ({ ...t, expanded: !t.expanded })) })); }, [modifyActiveProject]);
 
-  // Safe resolve
   const resolveActiveTask = (): Task | undefined => {
       if(!activeTask || !activeProjectId) return undefined;
       const p = state.projects.find(proj => proj.id === activeProjectId);
@@ -1058,11 +1109,11 @@ const App: React.FC = () => {
       return findDeep(p.tasks) || activeTask;
   };
 
-  if (!currentUser) return <IntroScreen onSelectUser={setCurrentUser} />;
+  if (!currentUser) return <IntroScreen onSelectUser={setCurrentUser} users={users} />; // Pass dynamic users
 
   return (
     <AppContext.Provider value={{ 
-      state, currentUser, activeProjectId, setActiveProjectId, addProject, updateProject, deleteProject, logout: () => setCurrentUser(null),
+      state, currentUser, users, activeProjectId, setActiveProjectId, addProject, updateProject, deleteProject, logout: () => setCurrentUser(null),
       draggedTaskId, setDraggedTaskId, addTask, toggleTaskStatus, updateTask, deleteTask, addActivity, addAttachment, toggleExpand, moveTask,
       openTaskDetail: setActiveTask, searchQuery, setSearchQuery, requestInput, openAIModal: () => setShowAI(true), openStatsModal: () => setShowStats(true),
       updateCurrentUser, openProfileModal: () => setShowProfile(true)
