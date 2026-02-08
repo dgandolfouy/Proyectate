@@ -139,10 +139,10 @@ const IntroScreen: React.FC<{ onSelectUser: (u: User) => void }> = ({ onSelectUs
   return (
     <div className="fixed inset-0 z-50 bg-[#050505] flex flex-col items-center justify-center p-4">
       <div className="text-center mb-16">
-         <h1 className="text-5xl md:text-7xl font-display font-medium text-white tracking-widest animate-cinematic bg-clip-text text-transparent bg-gradient-to-br from-white via-gray-200 to-gray-500">
+         <h1 className="text-4xl md:text-6xl font-display font-medium text-white tracking-widest animate-cinematic bg-clip-text text-transparent bg-gradient-to-br from-white via-gray-200 to-gray-500">
            Proyectate
          </h1>
-         <p className="text-gray-400 mt-2 font-sans font-light tracking-[0.2em] uppercase text-xs md:text-sm animate-fade-in" style={{ animationDelay: '1s' }}>
+         <p className="text-gray-400 mt-3 font-sans font-light tracking-[0.3em] uppercase text-[10px] md:text-xs animate-fade-in" style={{ animationDelay: '1s' }}>
            Relajo con Orden
          </p>
       </div>
@@ -751,9 +751,9 @@ const ProjectsList: React.FC = () => {
                 </div>
             </div>
 
-            <div className="mb-12 text-center">
-                <h1 className="text-4xl md:text-6xl font-display font-normal text-white mb-4 tracking-wide drop-shadow-2xl">Proyectate</h1>
-                <p className="text-xl text-gray-400 font-sans font-light tracking-[0.2em] uppercase">Relajo con Orden</p>
+            <div className="mb-8 text-center">
+                <h1 className="text-3xl md:text-5xl font-display font-normal text-white mb-2 tracking-wide drop-shadow-2xl">Proyectate</h1>
+                <p className="text-xs md:text-sm text-gray-400 font-sans font-light tracking-[0.3em] uppercase opacity-80">Relajo con Orden</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
