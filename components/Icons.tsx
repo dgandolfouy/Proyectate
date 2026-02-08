@@ -19,7 +19,8 @@ import {
   Upload,
   Lock,
   User,
-  ArrowRight
+  ArrowRight,
+  Search
 } from 'lucide-react';
 
 export const Icons = {
@@ -42,5 +43,6 @@ export const Icons = {
   Upload: Upload,
   Lock: Lock,
   User: User,
-  ArrowRight: ArrowRight
+  ArrowRight: ArrowRight,
+  Search: Search
 };
