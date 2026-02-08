@@ -33,6 +33,7 @@
               'fade-in': 'fadeIn 0.5s ease-out forwards',
               'slide-up': 'slideUp 0.5s ease-out forwards',
               'cinematic': 'cinematic 1.5s ease-out forwards',
+              'float': 'float 6s ease-in-out infinite',
             },
             keyframes: {
               blob: {
@@ -52,6 +53,10 @@
               cinematic: {
                 '0%': { opacity: '0', letterSpacing: '-0.1em', transform: 'scale(0.9)' },
                 '100%': { opacity: '1', letterSpacing: '0.05em', transform: 'scale(1)' },
+              },
+              float: {
+                '0%, 100%': { transform: 'translateY(0) rotate(0deg)' },
+                '50%': { transform: 'translateY(-20px) rotate(2deg)' },
               }
             }
           },
@@ -96,10 +101,8 @@
   }
 }
 </script>
-<link rel="stylesheet" href="/index.css">
 </head>
   <body>
     <div id="root"></div>
-  <script type="module" src="/index.tsx"></script>
-</body>
+  </body>
 </html>

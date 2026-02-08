@@ -156,8 +156,16 @@ const Avatar: React.FC<{ user?: User, size?: string }> = ({ user, size = "w-8 h-
 
 const IntroScreen: React.FC<{ onSelectUser: (u: User) => void; users: User[] }> = ({ onSelectUser, users }) => {
   return (
-    <div className="fixed inset-0 z-50 bg-[#050505] flex flex-col items-center justify-center p-4">
-      <div className="text-center mb-16">
+    <div className="fixed inset-0 z-50 bg-[#050505] flex flex-col items-center justify-center p-4 overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-500/5 rounded-full blur-[100px] pointer-events-none"></div>
+
+      <div className="text-center mb-16 relative z-10 flex flex-col items-center">
+         <div className="mb-8 relative">
+           <div className="absolute inset-0 bg-indigo-500/20 blur-xl rounded-full animate-pulse"></div>
+           <Icons.Rocket size={80} className="text-indigo-400 animate-float relative z-10 drop-shadow-[0_0_15px_rgba(99,102,241,0.5)]" strokeWidth={1.5} />
+         </div>
+
          <h1 className="text-4xl md:text-6xl font-display font-medium text-white tracking-widest animate-cinematic bg-clip-text text-transparent bg-gradient-to-br from-white via-gray-200 to-gray-500">
            Proyectate
          </h1>
@@ -166,12 +174,12 @@ const IntroScreen: React.FC<{ onSelectUser: (u: User) => void; users: User[] }> 
          </p>
       </div>
 
-      <div className="flex gap-6 animate-slide-up" style={{ animationDelay: '1.2s' }}>
+      <div className="flex gap-6 animate-slide-up relative z-10" style={{ animationDelay: '1.2s' }}>
         {users.map(user => (
           <button
             key={user.id}
             onClick={() => onSelectUser(user)}
-            className="group relative flex flex-col items-center gap-3 p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-primary/50 hover:bg-white/10 transition-all duration-300 w-32"
+            className="group relative flex flex-col items-center gap-3 p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-primary/50 hover:bg-white/10 transition-all duration-300 w-32 backdrop-blur-sm"
           >
             <Avatar user={user} size="w-16 h-16" />
             <span className="text-gray-300 font-medium group-hover:text-white">{user.name}</span>
@@ -275,7 +283,6 @@ const ProfileModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     );
 };
 
-// ... AIModal and StatsModal (keep as is) ...
 const AIModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const [query, setQuery] = useState('');
     const [response, setResponse] = useState('');
@@ -1142,17 +1149,27 @@ const App: React.FC = () => {
       <div className="min-h-screen bg-[#050505] text-gray-200 font-sans selection:bg-indigo-500/30">
         <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
           <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-indigo-500/10 rounded-full blur-[120px] animate-blob"></div>
-          <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-[120px] animate-blob" style={{ animationDelay: '5s' }}></div>
+          <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-indigo-500/5 rounded-full blur-[100px] animate-blob animation-delay-2000"></div>
         </div>
-        <main className="relative z-10">{activeProjectId ? <ProjectView /> : <ProjectsList />}</main>
-        {modalConfig && <InputModal title={modalConfig.title} onClose={() => setModalConfig(null)} onSubmit={(val) => { modalConfig.callback(val); setModalConfig(null); }} />}
+
+        <div className="relative z-10">
+          {activeProjectId ? <ProjectView /> : <ProjectsList />}
+        </div>
+        
+        {modalConfig && (
+           <InputModal title={modalConfig.title} onClose={() => setModalConfig(null)} onSubmit={modalConfig.callback} />
+        )}
+        
+        {activeTask && (
+            <TaskDetailModal task={activeTask} onClose={() => setActiveTask(null)} />
+        )}
+
         {showAI && <AIModal onClose={() => setShowAI(false)} />}
         {showStats && <StatsModal onClose={() => setShowStats(false)} />}
         {showProfile && <ProfileModal onClose={() => setShowProfile(false)} />}
-        {activeTask && activeProjectId && <TaskDetailModal task={resolveActiveTask()!} onClose={() => setActiveTask(null)} />}
       </div>
     </AppContext.Provider>
   );
-};
+}
 
 export default App;
