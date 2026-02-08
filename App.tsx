@@ -57,29 +57,45 @@ const findTaskAndDelete = (tasks: Task[], targetId: string): Task[] => {
   }));
 };
 
-// Helper to reorder tasks (move draggedId to index of targetId)
-const findAndReorderTask = (tasks: Task[], draggedId: string, targetId: string): Task[] => {
-    // Check if both IDs exist at this level
-    const draggedIndex = tasks.findIndex(t => t.id === draggedId);
-    const targetIndex = tasks.findIndex(t => t.id === targetId);
+// --- ROBUST REORDER LOGIC ---
+// 1. Remove task from tree
+const removeTaskFromList = (tasks: Task[], id: string): { cleaned: Task[], item: Task | null } => {
+    let item: Task | null = null;
+    const recurse = (list: Task[]): Task[] => {
+        return list.reduce((acc: Task[], t) => {
+            if (t.id === id) {
+                item = t;
+                return acc;
+            }
+            if (t.subtasks.length > 0) {
+                return [...acc, { ...t, subtasks: recurse(t.subtasks) }];
+            }
+            return [...acc, t];
+        }, []);
+    };
+    const cleaned = recurse(tasks);
+    return { cleaned, item };
+};
 
-    if (draggedIndex !== -1 && targetIndex !== -1) {
-        // Reorder at this level
-        const newTasks = [...tasks];
-        const [movedTask] = newTasks.splice(draggedIndex, 1);
-        // Calculate new index - if moving down, index shifts
-        const newTargetIndex = newTasks.findIndex(t => t.id === targetId); 
-        newTasks.splice(newTargetIndex, 0, movedTask);
-        return newTasks;
+// 2. Insert task before target
+const insertTaskBefore = (tasks: Task[], targetId: string, item: Task): Task[] => {
+    const idx = tasks.findIndex(t => t.id === targetId);
+    if (idx !== -1) {
+        const copy = [...tasks];
+        copy.splice(idx, 0, item);
+        return copy;
     }
-
-    // Recursively check children
-    return tasks.map(task => {
-        if (task.subtasks.length > 0) {
-            return { ...task, subtasks: findAndReorderTask(task.subtasks, draggedId, targetId) };
+    return tasks.map(t => {
+        if (t.subtasks.length > 0) {
+            return { ...t, subtasks: insertTaskBefore(t.subtasks, targetId, item) };
         }
-        return task;
+        return t;
     });
+};
+
+// 3. Check existence (prevent circular moves)
+const findTaskInTree = (tasks: Task[], id: string): boolean => {
+    return tasks.some(t => t.id === id || findTaskInTree(t.subtasks, id));
 };
 
 // --- COLOR THEMES ---
@@ -997,10 +1013,24 @@ const App: React.FC = () => {
   }, [modifyActiveProject]);
 
   const moveTask = useCallback((draggedId: string, targetId: string) => {
-      modifyActiveProject(p => ({
-          ...p,
-          tasks: findAndReorderTask(p.tasks, draggedId, targetId)
-      }));
+      modifyActiveProject(p => {
+          // 1. Find and Remove Dragged Task
+          const { cleaned, item } = removeTaskFromList(p.tasks, draggedId);
+          if (!item) return p;
+
+          // 2. Prevent dropping a parent into its own child (Circular dependency)
+          // If the targetId is inside the item we just removed, we can't insert it there.
+          // Since 'item' is removed from 'cleaned', we just check if targetId exists in 'cleaned'.
+          if (!findTaskInTree(cleaned, targetId)) {
+             // Target is likely inside the dragged item or doesn't exist
+             return p; 
+          }
+
+          // 3. Insert Dragged Task Before Target
+          const newTasks = insertTaskBefore(cleaned, targetId, item);
+          
+          return { ...p, tasks: newTasks };
+      });
   }, [modifyActiveProject]);
 
   const toggleTaskStatus = useCallback((taskId: string) => {
