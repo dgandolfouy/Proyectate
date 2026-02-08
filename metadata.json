@@ -1,0 +1,8 @@
+{
+  "name": "Proyectando",
+  "description": "Baja de tu cabeza con orden. Gestión de proyectos recursiva con estética moderna.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "name": "Proyectate",
+  "short_name": "Proyectate",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#050505",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://api.iconify.design/lucide:layout-dashboard.svg?color=%236366f1",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "https://api.iconify.design/lucide:layout-dashboard.svg?color=%236366f1",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
