@@ -7,17 +7,28 @@ export interface User {
   id: string;
   name: string;
   avatarColor: string;
+  avatarUrl?: string; // New: Profile picture
 }
 
 export const USERS: User[] = [
-  { id: 'u-leticia', name: 'Leticia', avatarColor: 'bg-rose-500' },
-  { id: 'u-daniel', name: 'Daniel', avatarColor: 'bg-blue-500' },
+  { 
+    id: 'u-leticia', 
+    name: 'Leticia', 
+    avatarColor: 'bg-rose-500',
+    avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=150&auto=format&fit=crop' 
+  },
+  { 
+    id: 'u-daniel', 
+    name: 'Daniel', 
+    avatarColor: 'bg-blue-500',
+    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&auto=format&fit=crop'
+  },
 ];
 
 export interface Attachment {
   id: string;
   name: string;
-  type: 'image' | 'document' | 'audio' | 'video';
+  type: 'image' | 'document' | 'audio' | 'video' | 'link';
   url: string;
   createdAt: number;
   createdBy: string; // User ID
@@ -26,7 +37,7 @@ export interface Attachment {
 export interface ActivityLog {
   id: string;
   content: string;
-  type: 'comment' | 'status_change' | 'creation' | 'attachment';
+  type: 'comment' | 'status_change' | 'creation' | 'attachment' | 'ai_suggestion';
   timestamp: number;
   createdBy: string; // User ID
 }
@@ -41,7 +52,11 @@ export interface Task {
   activity: ActivityLog[];
   tags: string[]; 
   expanded?: boolean;
-  createdBy: string; // User ID - Only owner can modify/delete
+  createdBy: string; // User ID
+  
+  // AI Integration
+  aiContext?: string; // Hidden context for the AI
+  suggestedSteps?: string; // AI generated suggestions
 }
 
 export interface Project {
@@ -51,7 +66,7 @@ export interface Project {
   createdAt: number;
   createdBy: string; // User ID
   tasks: Task[];
-  themeColor?: string;
+  imageUrl?: string; // New: Project cover/logo
 }
 
 export interface AppState {
@@ -66,7 +81,8 @@ export const INITIAL_APP_STATE: AppState = {
       subtitle: "Proyecto de Inversión",
       createdAt: Date.now(),
       createdBy: 'u-leticia',
-      tasks: [] // Clean slate
+      imageUrl: 'https://images.unsplash.com/photo-1602143407151-011141950039?q=80&w=600&auto=format&fit=crop', // Essential Oils aesthetic
+      tasks: [] 
     }
   ]
 };
